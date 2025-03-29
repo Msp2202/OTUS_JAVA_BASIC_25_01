@@ -14,21 +14,21 @@ package ru.otus.java.basic.oop_1;
 public class ApplicationOOPTask1 {
     public static void main(String[] args) {
         User[] users = {
-            new User("Петров","Петр","Петрович", 25, "pert@mail.ru"),
-                    new User("Иванов","Петр","Иванович", 55, "pert@mail.ru"),
-                    new User("Сидорова","Елена","Сергеевна", 15, "pert@mail.ru"),
-                    new User("Матросов","Петр","Ивановис", 48, "prt@mail.ru"),
-                    new User("Гольцова","Ирина","Петровна", 32, "gol@mail.ru"),
-                    new User("Дроздова","Наталья","Иванова", 57, "drozd@mail.ru"),
-                    new User("Краков","Сергей","Дмитриевич", 68, "kr@mail.ru"),
-                    new User("Иванова","Мария","Петрович", 12, "ivan@mail.ru"),
-                    new User("Яковлев","Петр","Александрович", 31, "ypa@mail.ru"),
-                    new User("Петров","Александр","Петрович", 55, "pert@mail.ru")
+                new User("Петров", "Петр", "Петрович", 25, "pert@mail.ru"),
+                new User("Иванов", "Петр", "Иванович", 55, "pert@mail.ru"),
+                new User("Сидорова", "Елена", "Сергеевна", 15, "pert@mail.ru"),
+                new User("Матросов", "Петр", "Ивановис", 48, "prt@mail.ru"),
+                new User("Гольцова", "Ирина", "Петровна", 32, "gol@mail.ru"),
+                new User("Дроздова", "Наталья", "Иванова", 57, "drozd@mail.ru"),
+                new User("Краков", "Сергей", "Дмитриевич", 68, "kr@mail.ru"),
+                new User("Иванова", "Мария", "Петрович", 12, "ivan@mail.ru"),
+                new User("Яковлев", "Петр", "Александрович", 31, "ypa@mail.ru"),
+                new User("Петров", "Александр", "Петрович", 55, "pert@mail.ru")
         };
 
         System.out.println("Список Users, чей возраст старше 40 лет");
         for (User user : users) {
-            if(user.getAge() > 40) {
+            if (user.getAge() > 40) {
                 user.printInfo();
             }
         }
