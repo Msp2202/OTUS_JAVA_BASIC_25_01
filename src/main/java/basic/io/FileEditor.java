@@ -13,7 +13,9 @@ public class FileEditor {
         Scanner scanner = new Scanner(System.in);
 
         try {
-            // 1. Получаем список текстовых файлов
+            /**
+             * 1. Получаем список текстовых файлов
+             */
             List<Path> textFiles = listTextFiles(ROOT_DIR);
 
             if (textFiles.isEmpty()) {
@@ -21,13 +23,17 @@ public class FileEditor {
                 return;
             }
 
-            // 2. Выводим список файлов
+            /**
+             * 2. Выводим список файлов
+             */
             System.out.println("Список текстовых файлов:");
             for (int i = 0; i < textFiles.size(); i++) {
                 System.out.println((i + 1) + ". " + textFiles.get(i).getFileName());
             }
 
-            // 3. Запрашиваем выбор файла
+            /**
+             * 3. Запрашиваем выбор файла
+             */
             System.out.print("\nВведите номер файла для работы: ");
             int fileNumber = Integer.parseInt(scanner.nextLine()) - 1;
 
@@ -38,11 +44,15 @@ public class FileEditor {
 
             Path selectedFile = textFiles.get(fileNumber);
 
-            // 4. Выводим содержимое файла
+            /**
+             * 4. Выводим содержимое файла
+             */
             System.out.println("\nСодержимое файла " + selectedFile.getFileName() + ":");
             printFileContent(selectedFile);
 
-            // 5. Режим записи в файл с отображением изменений
+            /**
+             * 5. Режим записи в файл с отображением изменений
+             */
             System.out.println("\nВведите текст для добавления в файл (для выхода введите 'exit'):");
             while (true) {
                 System.out.print("> ");
@@ -55,7 +65,9 @@ public class FileEditor {
                 appendToFile(selectedFile, input);
                 System.out.println("Текст добавлен в файл.");
 
-                // Показываем обновленное содержимое
+                /**
+                 * Показываем обновленное содержимое
+                 */
                 System.out.println("\nТекущее содержимое файла:");
                 printFileContent(selectedFile);
                 System.out.println();
