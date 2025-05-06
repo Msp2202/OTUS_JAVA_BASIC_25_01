@@ -17,7 +17,10 @@ public class BinarySearchTree<T extends Comparable<T>> implements SearchTree<T> 
         }
     }
 
-    // Рекурсивное построение сбалансированного дерева из отсортированного списка
+    /**
+     * Рекурсивное построение сбалансированного дерева из отсортированного списка
+      */
+
     private Node<T> buildBalancedTree(List<T> sortedList, int start, int end) {
         if (start > end) {
             return null;
@@ -37,7 +40,9 @@ public class BinarySearchTree<T extends Comparable<T>> implements SearchTree<T> 
         return findRecursive(root, element);
     }
 
-    // Рекурсивный поиск элемента в дереве
+    /**
+     * Рекурсивный поиск элемента в дереве
+     */
     private T findRecursive(Node<T> node, T element) {
         if (node == null) {
             return null;
@@ -61,7 +66,9 @@ public class BinarySearchTree<T extends Comparable<T>> implements SearchTree<T> 
         return result;
     }
 
-    // Обход дерева в порядке возрастания (левый-корень-правый)
+    /**
+     * Обход дерева в порядке возрастания (левый-корень-правый)
+     */
     private void inOrderTraversal(Node<T> node, List<T> result) {
         if (node != null) {
             inOrderTraversal(node.left, result);
