@@ -1,14 +1,14 @@
-package basic.multithreading.util;
+package basic.multithreading.lasson21.util;
 
 public class Measure {
     private static long time;
 
-    public void stamp() {
+    public static void stamp() {
         time = System.currentTimeMillis();
     }
 
-    public void print() {
+    public static void print(String message) {
         Long result = System.currentTimeMillis() - time;
-        System.out.println("Time" + result);
+        System.out.println(message + result + "msg");
     }
 }
