@@ -18,14 +18,8 @@ public class Client {
                          socket.getOutputStream()
                  )) {
 
-                /**
-                 * Получаем приветственное сообщение от сервера
-                 */
                 System.out.println(client.getWelcomeMessage());
 
-                /**
-                 * Ввод выражения
-                 */
                 System.out.print("> ");
                 String expression = scanner.nextLine()
                         .replace("=", "")
@@ -33,9 +27,6 @@ public class Client {
 
                 if (expression.equalsIgnoreCase("exit")) break;
 
-                /**
-                 * Отправка запроса и получение результата
-                 */
                 client.send(expression);
 
             } catch (IOException e) {
