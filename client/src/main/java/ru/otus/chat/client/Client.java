@@ -1,36 +1,46 @@
 package ru.otus.chat.client;
 
-import ru.otus.chat.client.utilit.ExampleClient;
-
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Scanner;
 
 /**
  *
  */
 public class Client {
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Клиент запущен ");
+    private Scanner scanner;
+    private Socket socket;
+    private DataInputStream inputStream;
+    private DataOutputStream outputStream;
 
-        try (Socket socket = new Socket("localhost", 8085);
-             DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+    public Client() throws IOException {
+        scanner = new Scanner(System.in);
+        socket = new Socket("localhost", 8085);
+        inputStream = new DataInputStream(socket.getInputStream());
+        outputStream = new DataOutputStream(socket.getOutputStream());
+
+        try {
+            new Thread(() -> {
+                while (true) {
+                    try {
+                        String message = inputStream.readUTF(); // Входящее сообщение
+                        System.out.println(message);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }).start();
+
             while (true) {
-                String massage = scanner.nextLine();
-                out.writeUTF(massage);
+                String message = scanner.nextLine();
+                outputStream.writeUTF(message); // Исходящее сообщение
+                if (message.equals("/exit")) break;
             }
 
-
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
-
     }
 }
