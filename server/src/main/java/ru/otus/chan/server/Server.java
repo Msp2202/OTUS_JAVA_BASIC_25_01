@@ -29,7 +29,7 @@ public class Server {
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
@@ -39,12 +39,47 @@ public class Server {
      */
     public void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
+        getActiveUsers();
     }
 
-    public void broadcastMessage(String message) throws IOException {
+    public void unsubscribe(ClientHandler clientHandler) {
+        broadcastMessage("Клиент " + clientHandler.getUsername() + " вышел из чата");
+        System.out.println("Клиент " + clientHandler.getUsername() + " вышел из чата");
+        clients.remove(clientHandler);
+    }
+
+    public void broadcastMessage(String message) {
         for (ClientHandler client : clients) {
             client.send(message);
         }
     }
 
+    /**
+     * Список активных пользователей
+     * @return
+     */
+    public String getActiveUsers(){
+        if(clients.isEmpty()){
+            return "Нет активных пользователей";
+        }
+        StringBuilder userList = new StringBuilder();
+        for (ClientHandler client : clients) {
+            userList.append(client.getUsername());
+            userList.append(", ");
+        }
+        System.out.println("В чате активные пользователи с именами: " + userList.toString());
+        return userList.toString();
+    }
+
+    /**
+     * Метод поиска клиента по имени
+     */
+    public ClientHandler findClientByUsername(String username) {
+        for (ClientHandler client : clients) {
+            if (client.getUsername().equalsIgnoreCase(username)){
+                return client;
+            }
+        }
+        return null;
+    }
 }

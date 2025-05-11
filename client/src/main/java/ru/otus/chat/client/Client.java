@@ -6,14 +6,16 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
 
+import static java.util.Objects.nonNull;
+
 /**
  *
  */
 public class Client {
-    private Scanner scanner;
-    private Socket socket;
-    private DataInputStream inputStream;
-    private DataOutputStream outputStream;
+    private final Scanner scanner;
+    private final Socket socket;
+    private final DataInputStream inputStream;
+    private final DataOutputStream outputStream;
 
     public Client() throws IOException {
         scanner = new Scanner(System.in);
@@ -23,13 +25,20 @@ public class Client {
 
         try {
             new Thread(() -> {
-                while (true) {
-                    try {
+                try {
+                    while (true) {
                         String message = inputStream.readUTF(); // Входящее сообщение
+                        if (message.startsWith("/")) {
+                            if (message.equalsIgnoreCase("/exitOk")) {
+                                break;
+                            }
+                        }
                         System.out.println(message);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    disconnect();
                 }
             }).start();
 
@@ -40,6 +49,32 @@ public class Client {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void disconnect() {
+        try {
+            if (nonNull(inputStream)) {
+                inputStream.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            if (nonNull(outputStream)) {
+                outputStream.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            if (nonNull(socket)) {
+                socket.close();
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
