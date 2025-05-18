@@ -32,6 +32,15 @@ public class Client {
                             if (message.equalsIgnoreCase("/exitOk")) {
                                 break;
                             }
+                            if (message.startsWith("/authok ")) {
+                                System.out.println("Вы подключились под ником: " + message.split(" ")[1]);
+                                continue;
+                            }
+                            if (message.startsWith("/regok ")) {
+                                System.out.println("Вы успешно зарегистрировались и подключились под ником: "
+                                        + message.split(" ")[1]);
+                                continue;
+                            }
                         }
                         System.out.println(message);
                     }
