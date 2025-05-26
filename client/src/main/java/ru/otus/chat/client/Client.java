@@ -41,6 +41,10 @@ public class Client {
                                         + message.split(" ")[1]);
                                 continue;
                             }
+                            if (message.equalsIgnoreCase("/kickok")) {
+                                System.out.println("Вы были отключены от сервера");
+                                break;
+                            }
                         }
                         System.out.println(message);
                     }

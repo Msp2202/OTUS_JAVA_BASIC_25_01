@@ -19,7 +19,11 @@ public class ClientHandler {
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
 
+
     private String username;
+    private boolean authenticated;
+    private String role;
+    private ClientHandler clientHandler;
 
     public ClientHandler(Socket socket, Server server) throws IOException {
         this.server = server;
@@ -35,6 +39,51 @@ public class ClientHandler {
             try {
                 System.out.println("Подключился клиент с портом: " + socket.getPort());
 
+                //Цикл аутентификации
+                while (true) {
+                    send("Перед работой с чатом необходимо выполнить " +
+                            "аутентификацию '/auth login password' \n" +
+                            "или регистрацию '/reg login password username'");
+                    String message = inputStream.readUTF();
+                    if (message.startsWith("/")) {
+                        if (message.equals("/exit")) {
+                            send("/exitok");
+                            break;
+                        }
+
+
+                        ///auth login password
+                        if (message.startsWith("/auth ")) {
+                            String token[] = message.split(" ");
+                            if (token.length != 3) {
+                                send("Неверный формат команды /auth");
+                                continue;
+                            }
+                            if (server.getAuthenticatedProvider()
+                                    .authenticate(this, token[1], token[2])) {
+                                authenticated = true;
+                                break;
+                            }
+                        }
+                        ///reg login password username
+                        if (message.startsWith("/reg ")) {
+                            String token[] = message.split(" ");
+                            if (token.length != 4) {
+                                send("Неверный формат команды /reg");
+                                continue;
+                            }
+                            if (server.getAuthenticatedProvider()
+                                    .registration(this, token[1], token[2], token[3])) {
+                                authenticated = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+
+                // Цикл для работы с зарегистрированным пользователем,
+                // прошедшим аутентификации(подтверждение пользователя) и авторизацию(с определенными провами).
                 while (true) {
                     String message = inputStream.readUTF();
                     if (message.startsWith("/")) { // служебное сообщение -> далее логика обработки
@@ -45,7 +94,26 @@ public class ClientHandler {
                         if (message.startsWith("/w")) { // служебное сообщение -> лисное сообщение
                             privateSend(message);
                         }
-
+                        if (message.startsWith("/kick")) {
+                            if (!"ADMIN".equals(this.role)) {
+                                send("Ошибка: Недостаточно прав!");
+                                continue;
+                            }
+                            String[] parts = message.split(" ", 2);
+                            if (parts.length != 2) {
+                                send("Неверный формат: /kick username");
+                                continue;
+                            }
+                            String targetUsername = parts[1];
+                            ClientHandler target = server.findClientByUsername(targetUsername);
+                            if (nonNull(target)) {
+                                target.send("/kickok"); // Сообщение об отключении
+                                target.disconnect();
+                                server.broadcastMessage(targetUsername + " был кикнут администратором");
+                            } else {
+                                send("Пользователь не найден: " + targetUsername);
+                            }
+                        }
                     } else {
                         server.broadcastMessage(username + ": " + message);
                     }
@@ -87,6 +155,7 @@ public class ClientHandler {
 
     public void disconnect() {
         server.unsubscribe(this);
+        server.broadcastMessage(username + " покинул чат");
         server.getActiveUsers();
         try {
             if (nonNull(inputStream)) {
@@ -117,7 +186,15 @@ public class ClientHandler {
         return username;
     }
 
-    public void setUsername(int username) {
-        this.username = String.valueOf(username);
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
