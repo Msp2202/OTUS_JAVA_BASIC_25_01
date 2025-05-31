@@ -10,10 +10,12 @@ public class Server {
 
     private int port = 8085;
     private List<ClientHandler> clients;
+    private AuthenticatedProvider authenticatedProvider;
 
     public Server(int port) {
         this.port = port;
         clients = new CopyOnWriteArrayList<>();
+        authenticatedProvider = new InMemoryAuthenticatedProvider(this);
     }
 
     /**
@@ -81,5 +83,18 @@ public class Server {
             }
         }
         return null;
+    }
+
+    public boolean isUsernameBusy(String username) {
+        for (ClientHandler c : clients) {
+            if (c.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public AuthenticatedProvider getAuthenticatedProvider() {
+        return authenticatedProvider;
     }
 }
