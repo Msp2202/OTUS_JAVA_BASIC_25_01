@@ -6,8 +6,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static java.util.Objects.isNull;
 
+/**
+ * Класс для аутентификации и регистрации пользователей.
+ *
+ */
 public class InMemoryAuthenticatedProvider implements AuthenticatedProvider {
 
+    // TODO требуется заменть на реализацию для работы с БД
     private List<User> users;
     private Server server;
     public InMemoryAuthenticatedProvider(Server server) {
