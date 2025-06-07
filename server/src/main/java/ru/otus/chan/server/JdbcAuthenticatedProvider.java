@@ -17,14 +17,14 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     @Override
     public void initialize() {
         try {
-            String url = "jdbc:postgresql://localhost:5432/5432/chat_bd";
+            String url = "jdbc:postgresql://localhost:5432/chat_db";
             String user = "postgres";
             String password = "postgres";
 
             connection = DriverManager.getConnection(url, user, password);
             System.out.printf("Сервис аутентификации запущен: JDBC режим");
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка подключения к БД");
+            throw new RuntimeException("Ошибка подключения к БД", e);
         }
 
     }
@@ -91,7 +91,7 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     }
 
     private boolean isValueExists(String column, String value) {
-        String isLoginRequest = "SELECT 1 FROM users WHERE " + column + " = ?";
+        String isLoginRequest = "SELECT 1 FROM users_chat WHERE " + column + " = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(isLoginRequest)) {
             ps.setString(1, value);
@@ -99,7 +99,7 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
                 return rs.next();
             }
         } catch (SQLException e) {
-            return true;
+            throw new RuntimeException("Проверка провалена: " + column, e);
         }
     }
 
