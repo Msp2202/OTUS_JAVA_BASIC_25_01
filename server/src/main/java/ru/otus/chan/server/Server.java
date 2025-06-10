@@ -9,7 +9,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Server {
 
     private int port = 8085;
-    private List<ClientHandler> clients; // TODO заменить на бд добавив статус, пок храним в памяти
+    private List<ClientHandler> clients; // TODO заменить на бд добавив статус, пок храним в памяти. из SqlQueries.UPDATE_STATUS
     private AuthenticatedProvider authenticatedProvider;
 
     public Server(int port) {

@@ -9,6 +9,10 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     private final Server server;
     private Connection connection;
 
+    private static final String DB_URL = "jdbc:postgresql://localhost:5432/chat_db";
+    private static final String DB_USER = "postgres";;
+    private static final String DB_PASSWORD = "postgres";
+
     public JdbcAuthenticatedProvider(Server server) {
         this.server = server;
     }
@@ -17,11 +21,7 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     @Override
     public void initialize() {
         try {
-            String url = "jdbc:postgresql://localhost:5432/chat_db";
-            String user = "postgres";
-            String password = "postgres";
-
-            connection = DriverManager.getConnection(url, user, password);
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
             System.out.printf("Сервис аутентификации запущен: JDBC режим");
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка подключения к БД", e);
@@ -32,9 +32,7 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     @Override
     public boolean authenticate(ClientHandler clientHandler, String login, String password) {
 
-        String request = "SELECT user_name , role  FROM users_chat uc WHERE login=? AND password = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(request)) {
+        try (PreparedStatement ps = connection.prepareStatement(SqlQueries.AUTH_QUERY)) {
             ps.setString(1, login);
             ps.setString(2, password);
 
@@ -67,14 +65,15 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
 
     @Override
     public boolean registration(ClientHandler clientHandler, String login, String password, String userName) {
-        if (login.length() < 3) return error(clientHandler, "Логин должен быть 3+ символа");
+        if (login.length() < 3) {
+            return error(clientHandler, "Логин должен быть 3+ символа");
+        }
         if (userName.length() < 3) return error(clientHandler, "Имя пользователя должно быть 3+ символа");
         if (password.length() < 3) return error(clientHandler, "Пароль должно быть 3+ символа");
 
         if (isValueExists("login", login)) return error(clientHandler, "Логин уже занят");
 
-        String regRequest = "INSERT INTO users_chat (login, password, user_name, role) VALUES(?, ?, ?, 'USER')";
-        try (PreparedStatement ps = connection.prepareStatement(regRequest)) {
+        try (PreparedStatement ps = connection.prepareStatement(SqlQueries.REGISTER_QUERY)) {
             ps.setString(1, login);
             ps.setString(2, password);
             ps.setString(3, userName);
