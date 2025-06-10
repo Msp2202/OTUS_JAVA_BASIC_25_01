@@ -10,7 +10,7 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     private Connection connection;
 
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/chat_db";
-    private static final String DB_USER = "postgres";;
+    private static final String DB_USER = "postgres";
     private static final String DB_PASSWORD = "postgres";
 
     public JdbcAuthenticatedProvider(Server server) {
@@ -22,7 +22,7 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     public void initialize() {
         try {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            System.out.printf("Сервис аутентификации запущен: JDBC режим");
+            System.out.print("Сервис аутентификации запущен: JDBC режим");
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка подключения к БД", e);
         }
@@ -68,10 +68,16 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
         if (login.length() < 3) {
             return error(clientHandler, "Логин должен быть 3+ символа");
         }
-        if (userName.length() < 3) return error(clientHandler, "Имя пользователя должно быть 3+ символа");
-        if (password.length() < 3) return error(clientHandler, "Пароль должно быть 3+ символа");
+        if (userName.length() < 3) {
+            return error(clientHandler, "Имя пользователя должно быть 3+ символа");
+        }
+        if (password.length() < 3) {
+            return error(clientHandler, "Пароль должно быть 3+ символа");
+        }
 
-        if (isValueExists("login", login)) return error(clientHandler, "Логин уже занят");
+        if (isValueExists("login", login)) {
+            return error(clientHandler, "Логин уже занят");
+        }
 
         try (PreparedStatement ps = connection.prepareStatement(SqlQueries.REGISTER_QUERY)) {
             ps.setString(1, login);
@@ -90,7 +96,11 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     }
 
     private boolean isValueExists(String column, String value) {
-        String isLoginRequest = "SELECT 1 FROM users_chat WHERE " + column + " = ?";
+        if(!SqlQueries.ALLOWED_COLUMNS.contains(column)){
+            throw new IllegalArgumentException("Не правильно указана колонка: " + column);
+        }
+        // Форматирование безопасного запроса
+        String isLoginRequest = String.format(SqlQueries.VALUE_EXISTS_TEMPLATE, column);
 
         try (PreparedStatement ps = connection.prepareStatement(isLoginRequest)) {
             ps.setString(1, value);
