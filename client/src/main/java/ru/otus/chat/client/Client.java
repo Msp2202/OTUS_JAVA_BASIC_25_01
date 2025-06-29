@@ -1,6 +1,8 @@
 package ru.otus.chat.client;
 
 import com.sun.tools.javac.Main;
+import ru.otus.protocol.ProtocolConstants;
+import ru.otus.utill.NetworkConstants;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -15,7 +17,8 @@ import static java.util.Objects.nonNull;
  *
  */
 public class Client {
-    private static final Logger log = Logger.getLogger(Main.class.getName());
+
+    private static final Logger log = Logger.getLogger(Client.class.getName());
     private final Scanner scanner;
     private final Socket socket;
     private final DataInputStream inputStream;
@@ -24,7 +27,7 @@ public class Client {
     public Client() throws IOException {
 
         scanner = new Scanner(System.in);
-        socket = new Socket("localhost", 8085);
+        socket = new Socket(NetworkConstants.SERVER_HOST, NetworkConstants.SERVER_PORT);
         inputStream = new DataInputStream(socket.getInputStream());
         outputStream = new DataOutputStream(socket.getOutputStream());
 
@@ -33,20 +36,20 @@ public class Client {
                 try {
                     while (true) {
                         String message = inputStream.readUTF(); // Входящее сообщение
-                        if (message.startsWith("/")) {
-                            if (message.equalsIgnoreCase("/exitOk")) {
+                        if (message.startsWith(ProtocolConstants.COMMAND_PREFIX)) {
+                            if (message.equalsIgnoreCase(ProtocolConstants.EXIT_OK)) {
                                 break;
                             }
-                            if (message.startsWith("/authok ")) {
+                            if (message.startsWith(ProtocolConstants.AUTH_OK)) {
                                 log.info("Вы подключились под ником: " + message.split(" ")[1]);
                                 continue;
                             }
-                            if (message.startsWith("/regok ")) {
+                            if (message.startsWith(ProtocolConstants.REG_OK)) {
                                 log.info("Вы успешно зарегистрировались и подключились под ником: "
                                         + message.split(" ")[1]);
                                 continue;
                             }
-                            if (message.equalsIgnoreCase("/kickok")) {
+                            if (message.equalsIgnoreCase(ProtocolConstants.KICK_OK)) {
                                 log.info("Вы были отключены от сервера");
                                 break;
                             }
@@ -63,7 +66,7 @@ public class Client {
             while (true) {
                 String message = scanner.nextLine();
                 outputStream.writeUTF(message); // Исходящее сообщение
-                if (message.equals("/exit")) break;
+                if (message.equals(ProtocolConstants.EXIT)) break;
             }
 
         } catch (Exception e) {
