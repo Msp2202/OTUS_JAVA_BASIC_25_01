@@ -1,6 +1,12 @@
 package ru.otus.chan.server;
 
+import com.sun.tools.javac.Main;
+import ru.otus.config.DbConfig;
+import ru.otus.protocol.ProtocolConstants;
+import ru.otus.sqlskripts.SqlQueries;
+
 import java.sql.*;
+import java.util.logging.Logger;
 
 /**
  * Класс для аутентификации и регистрации пользователей с использованием Jdbc
@@ -9,9 +15,7 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     private final Server server;
     private Connection connection;
 
-    private static final String DB_URL = "jdbc:postgresql://localhost:5432/chat_db";
-    private static final String DB_USER = "postgres";
-    private static final String DB_PASSWORD = "postgres";
+    private static final Logger log = Logger.getLogger(JdbcAuthenticatedProvider.class.getName());
 
     public JdbcAuthenticatedProvider(Server server) {
         this.server = server;
@@ -21,9 +25,13 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     @Override
     public void initialize() {
         try {
-            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            System.out.print("Сервис аутентификации запущен: JDBC режим");
+            connection = DriverManager.getConnection(
+                    DbConfig.DB_URL,
+                    DbConfig.DB_USER,
+                    DbConfig.DB_PASSWORD);
+            log.info("Сервис аутентификации запущен: JDBC режим");
         } catch (SQLException e) {
+            log.severe("Ошибка подключения к БД :" + e.getMessage());
             throw new RuntimeException("Ошибка подключения к БД", e);
         }
 
@@ -32,6 +40,33 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
     @Override
     public boolean authenticate(ClientHandler clientHandler, String login, String password) {
 
+        /**
+         * Сначала проверяем бан
+         */
+        try (PreparedStatement psBan = connection.prepareStatement(SqlQueries.CHECK_BAN_QUERY)) {
+            // Получаем user_id по логину
+            int userId = getUserIdByLogin(login);
+            if (userId == -1) {
+                clientHandler.send("Пользователь не найден");
+                return false;
+            }
+
+            psBan.setInt(1, userId);
+            try (ResultSet rsBan = psBan.executeQuery()) {
+                if (rsBan.next()) {
+                    Timestamp bannedUntil = rsBan.getTimestamp("banned_until");
+                    String reason = rsBan.getString("reason");
+                    clientHandler.send("Вы забанены до " + bannedUntil + ". Причина: " + reason);
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            log.warning("Ошибка проверки бана: " + e.getMessage());
+        }
+
+        /**
+         * Далее логика аутентификации
+         */
         try (PreparedStatement ps = connection.prepareStatement(SqlQueries.AUTH_QUERY)) {
             ps.setString(1, login);
             ps.setString(2, password);
@@ -49,7 +84,7 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
                     clientHandler.setUsername(userName);
                     clientHandler.setRole(role);
                     server.subscribe(clientHandler);
-                    clientHandler.send("/authok " + userName);
+                    clientHandler.send(ProtocolConstants.AUTH_OK + userName);
                     return true;
                 } else {
                     clientHandler.send("Некорректный логин/пароль");
@@ -110,6 +145,26 @@ public class JdbcAuthenticatedProvider implements AuthenticatedProvider {
         } catch (SQLException e) {
             throw new RuntimeException("Проверка провалена: " + column, e);
         }
+    }
+
+    /**
+     * Запрос в БД при проверке наличия бана
+     *
+     * @param login
+     * @return
+     * @throws SQLException
+     */
+    private int getUserIdByLogin(String login) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(SqlQueries.GET_USER_ID_QUERY)) {
+            ps.setString(1, login);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("id") : -1;
+            }
+        }
+    }
+
+    public Connection getConnection() {
+        return connection;
     }
 
     private boolean error(ClientHandler clientHandler, String message) {
