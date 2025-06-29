@@ -1,10 +1,13 @@
 package ru.otus.chat.client;
 
+import com.sun.tools.javac.Main;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 import static java.util.Objects.nonNull;
 
@@ -12,12 +15,14 @@ import static java.util.Objects.nonNull;
  *
  */
 public class Client {
+    private static final Logger log = Logger.getLogger(Main.class.getName());
     private final Scanner scanner;
     private final Socket socket;
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
 
     public Client() throws IOException {
+
         scanner = new Scanner(System.in);
         socket = new Socket("localhost", 8085);
         inputStream = new DataInputStream(socket.getInputStream());
@@ -33,16 +38,16 @@ public class Client {
                                 break;
                             }
                             if (message.startsWith("/authok ")) {
-                                System.out.println("Вы подключились под ником: " + message.split(" ")[1]);
+                                log.info("Вы подключились под ником: " + message.split(" ")[1]);
                                 continue;
                             }
                             if (message.startsWith("/regok ")) {
-                                System.out.println("Вы успешно зарегистрировались и подключились под ником: "
+                                log.info("Вы успешно зарегистрировались и подключились под ником: "
                                         + message.split(" ")[1]);
                                 continue;
                             }
                             if (message.equalsIgnoreCase("/kickok")) {
-                                System.out.println("Вы были отключены от сервера");
+                                log.info("Вы были отключены от сервера");
                                 break;
                             }
                         }
